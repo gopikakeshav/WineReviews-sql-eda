@@ -139,6 +139,13 @@ order by NAmerica_avg desc, Europe_avg desc
 Output:
 ![Q1 Output](images/Q1output.png)
 
+### Insights:
+1. All 4 varieties are rated above their local median in NA & EU, they are universally liked. 
+2. BSRW - is 35% lesser in Europe, could be explored for export to the NA due to this price difference.
+3. Syrah – Same rating in both continents, but in Europe it is on the expensive side. This could be a due to higher production cost. 
+4. Malbec – Europe has better quality and lower price
+5. Pinot Noir - price is stable across regions
+
 
 
 
