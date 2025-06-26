@@ -347,4 +347,19 @@ order by continent, ranking
 
 ```
 Output:
-![Q2Output]()
+![Q2Output](images/Q2output.png)
+
+### Insights:
+1. Europe:
+1.1. Gérard Bertrand - Has good price and quality
+1.2 Planeta - offers similar quality as GB but at lower price
+1.3 Marchesi Antinori - High premium price, but has lesser no. of highly rated wines
+
+2. North America:
+2.1 Cayuse - Tops in prestige, moderate price. 
+2.2. Joseph Phelps and Charles Smith - high-quality & high price, good rating
+2.3 Syncline and Barnard Griffin - high rated wines at low price - deal clinchers
+ 
+
+
+
