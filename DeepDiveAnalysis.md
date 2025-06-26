@@ -360,6 +360,94 @@ Output:
    - Joseph Phelps and Charles Smith - high-quality & high price, good rating
    - Syncline and Barnard Griffin - high rated wines at low price - deal clinchers
  
+## Q3 Geographical Hierarchy of Wine production
+
+### Objective:
+1. To trace the origin of a winery to its country.
+2. Display review counts and scores
+
+```sql
+select * from 
+(select 
+country as location,
+NULL as parent,
+'Country' as level,
+count(*) as reviews, round(avg(points),2) as avg_points
+from wine_reviews
+group by country
+
+union all 
+
+select 
+concat(country,' > ',province) as location,
+country as parent,
+'Province' as level,
+count(*) as reviews, round(avg(points),2) as avg_points
+from wine_reviews
+where province is not null
+group by country, province
+
+UNION ALL
+
+select 
+concat(country,' > ',province,' > ', region_1) as location,
+concat(country,' > ',province) as parent,
+'Region' as level,
+count(*) as reviews, round(avg(points),2) as avg_points
+from wine_reviews
+where region_1 is not null and province is not null
+group by country, province, region_1
+
+union all
+
+select 
+concat(country,' > ',province,' > ',region_1,' > ',winery) as parent,
+concat(country,' > ',province,' > ',region_1) as parent,
+'Winery' as level,
+count(*) as reviews, round(avg(points),2) as avg_points
+from wine_reviews
+where region_1 is not null and province is not null and winery is not null
+group by country, province,region_1,winery
+)hierarchy
+where location like 'Spain%'
+order by location
+```
+Output:
+For Spain
+
+![Q3 Output]()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
