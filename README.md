@@ -15,7 +15,7 @@
 Kaggle : [Wine_reviews](https://www.kaggle.com/datasets/zynicide/wine-reviews)
 
 ## Analysis:
-1. First cut analysis is done on [Jupyter notebook]()
+1. First cut analysis is done on Jupyter notebook and available [here](Wine_reviews-eda.ipynb)
 2. Deeper Analysis can be found [here](DeepDiveAnalysis.md) 
 
 ## Summary of Findings:
