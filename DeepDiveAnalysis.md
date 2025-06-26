@@ -147,7 +147,26 @@ Output:
 5. Pinot Noir - price is stable across regions
 
 
+## 2. Ranking Wineries on Prestige Index
 
+### Objective:
+1. Create a measure to gauge each Winery based on its rating, price and score
+2. Use this measure to indentify top wineries in each continent.
+
+### Analysis:
+1. A winery can be in 2 different continents, it can a prestige index for each continent. There are 36 such Wineries in the dataset with US & EU as locations
+2. US has 4800+ wineries & Europe has 8000+ wineries. Not all wineries can be used in this study. 
+Let us narrow down to wineries with the greater appeal - wineries with >10 reviews.
+Below is a winery distribution profile with NA as an example 
+Finding the distribution of the wineries by review counts.
+
+| **Bins**   | **=1** | **1_9** | **10_99** | **100_499** | **>=500** | **Total** |
+|--------------|--------|--------|-----------|-------------|-----------|-----------|
+| **Review #** | 844 | 2334	| 1583  | 60      | 0      | 4821      |
+| **Review %** | 18 | 48  | 33     | 1        | 0      | 100       |
+
+~70% of the wineries have less than 10 reviews. 
+For this case study we will only consider wineries with reviews >=10 in a continent.
 
 
 
