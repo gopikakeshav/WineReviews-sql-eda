@@ -16,7 +16,7 @@ Kaggle : [Wine_reviews](https://www.kaggle.com/datasets/zynicide/wine-reviews)
 
 ## Analysis:
 1. First cut analysis is done on [Jupyter notebook]()
-2. Deeper Analysis can be found [here]() 
+2. Deeper Analysis can be found [here](DeepDiveAnalysis.md) 
 
 ## Summary of Findings:
 1. About 70% of the reviews are from EU & NA
