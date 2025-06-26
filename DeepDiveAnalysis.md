@@ -137,6 +137,7 @@ order by NAmerica_avg desc, Europe_avg desc
 
 ```
 Output:
+![Q1 Output](images/Q1output.png)
 
 
 
