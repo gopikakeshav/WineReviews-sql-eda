@@ -160,7 +160,7 @@ Let us narrow down to wineries with the greater appeal - wineries with >10 revie
 Below is a winery distribution profile with NA as an example 
 Finding the distribution of the wineries by review counts.
 
-| **Bins**   | **=1** | **1_9** | **10_99** | **100_499** | **>=500** | **Total** |
+| **Bins**   | **1** | **1-9** | **10-99** | **100-499** | **>=500** | **Total** |
 |--------------|--------|--------|-----------|-------------|-----------|-----------|
 | **Review #** | 844 | 2334	| 1583  | 60      | 0      | 4821      |
 | **Review %** | 18 | 48  | 33     | 1        | 0      | 100       |
