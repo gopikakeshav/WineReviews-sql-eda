@@ -361,7 +361,7 @@ Output:
    - Joseph Phelps and Charles Smith - high-quality & high price, good rating
    - Syncline and Barnard Griffin - high rated wines at low price - deal clinchers
  
-## Q3 Geographical Hierarchy of Wine production
+## 3. Geographical Hierarchy of Wine production
 
 ### Objective:
 1. To trace the origin of a winery to its country.
@@ -420,18 +420,113 @@ For Spain
 ![Q3 Output](images/Q3output.png)
 
 
+## 4. Emerging Wine Countries
+
+### Objective:
+Identify countries that have low review counts but high average score
+
+```sql
+select * from (
+select 
+country, 
+count(*) as reviews,
+round(avg(points),2) as avg_points,
+round(avg(prices),2) as avg_price,
+round(avg(prices)/avg(points),2) as Price_to_points_ratio
+from wine_reviews
+group by country 
+order by reviews desc
+)t
+where reviews <1000 and avg_points >87
+```
+Output:
+
+![Q4_Output](images/Q4output.png)
+
+### Insights:
+
+1.Canada, Switzerland - have good score
+2. India, Serbia, Israel - have high score and are affordable
+3. England, Hungary - have low reviews but high score, they can become luxury markets
 
 
 
+## 5. We recommend your next wine
+
+### Objective:
+If a person has a strong preference for Pinot-Noir, what similar wines can the person try?
+
+```sql
+
+# Given Reference
+with cte_ref_group as (
+select * from (
+select country, points, prices, province, region_1, region_2, variety, winery, continent,
+cume_dist() over (order by prices asc) as price_percentile
+ from wine_reviews
+where variety = 'Pinot Noir' and province in ('Oregon')
+and prices !=0 and region_1 is not null and region_2 !='\r' 
+#2552 rows with Pinot Noir - Oregon
+)t where price_percentile between 0.7 and 0.8
+# 240 rows in the 70%-80% tier
+)
+,
+cte_ref_grp_stats as (
+select 'Pinot Noir' as ref_variety, 'Oregon' as location,
+round(avg(points),2) ref_points, round(avg(prices),2) ref_prices, round( avg(prices)/ avg(points),2) as ref_ppr 
+from cte_ref_group
+),
+
+cte_all_province_stats as (
+select province, round(avg(prices),2) as avg_prices, round(avg(points),2) as avg_points, round(avg(points)/avg(prices),2) as ppr, count(*) as reviews,
+round((sum(case when variety = 'Pinot Noir' then 1 else 0 end) / count(*))*100,2) as pinot_noir_share
+from wine_reviews
+group by province
+having avg_prices != 0.00
+order by reviews desc, avg_points desc, avg_prices desc, ppr desc
+),
+/*
+	|Location	|avg_price	|avg_points |ppr 	|reviews 	|pinot_noir_share
+    ----------------------------------------------------------------------------
+	|Oregon		|33.94		|88.51		|2.61	|4589		|55.61
+    
+*/
+cte_similar_province as (
+select distinct province from (
+select a.* from cte_all_province_stats a join 
+(select * from cte_all_province_stats where province ='Oregon')b
+on 1=1
+where a.avg_prices between b.avg_prices*0.9 and b.avg_prices*1.1
+and a.avg_points between b.avg_points-1 and b.avg_points+1
+and a.ppr between a.ppr-1 and a.ppr+1
+and a.pinot_noir_share between  b.pinot_noir_share*0.8 and b.pinot_noir_share*1.2
+and a.province != 'Oregon'
+)t
+)
 
 
+#finding similar in price & points & province
+select distinct continent, country, province, variety from (
 
+select a.country, a.points, a.prices, a.province, a.region_1, a.region_2, a.variety, a.winery, a.continent
+from wine_reviews a join cte_ref_grp_stats b on 1=1 join cte_similar_province c on 1=1 
+where a.points between (b.ref_points)-1 and (b.ref_points)+1
+and a.prices between (b.ref_prices)*0.9 and (b.ref_prices)*1.1
+#and variety != 'Pinot Noir' 
+#and variety not like 'White%' and variety not like '%White%' and variety not like '%white%'
+#and province != 'Oregon'
+and a.province in (select province from cte_similar_province)
+order by a.continent, a.country, a.province, a.variety, a.points, a.prices
+) temp
 
+```
 
+Output:
 
+![Q5_Output](images/Q4output.png)
 
-
-
+### Insights:
+The person can try the Pinot Gais, Chardonnay, Gewürztraminer, Riesling varieties from New Zealand.
 
 
 
