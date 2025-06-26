@@ -168,5 +168,183 @@ Finding the distribution of the wineries by review counts.
 ~70% of the wineries have less than 10 reviews. 
 For this case study we will only consider wineries with reviews >=10 in a continent.
 
+```sql
+#create table wine.top_wineriesNAEU(continent varchar(255), winery varchar(255), reviews int );
 
 
+#Truncate table wine.top_wineriesNAEU;
+/*
+# insert into created table. 
+insert into wine.top_wineriesNAEU(continent,winery,reviews )
+with cte_t1 as (
+select continent, winery, count(*) as reviews
+from wine_reviews 
+where continent in ('North America')  #, 'Europe')
+group by continent, winery
+having count(*) >=10
+) #1643
+,
+cte_t2 as (
+select continent, winery, count(*) as reviews
+from wine_reviews 
+where continent in ('Europe')
+group by continent, winery
+having count(*) >=10
+)#1952
+
+
+select * from cte_t1
+union all 
+select * from cte_t2;
+*/
+# computing avg price, avg points, count of high quality wines 
+
+with cte_t1 as (
+/* Query to find the count of wines with points above median (88 for both NA & EU)*/
+select continent, winery, count(variety) as high_rating_wines from (
+select continent, winery, variety,
+sum(case when points >=88 then 1 else 0 end) as high_rating_variety, 
+count(*) as total_reviews
+from wine_reviews 
+where continent in ( 'North America', 'Europe')
+group by continent, winery, variety
+having sum(case when points >=88 then 1 else 0 end)>0
+order by winery, high_rating_variety
+)t group by continent, winery
+order by winery, high_rating_wines desc
+)
+
+select m.continent, m.winery, round(avg(m.points),2) as avg_points, round(avg(m.prices),2) as avg_price, 
+round(avg(r.high_rating_wines),0) as High_rating_wines
+from wine_reviews m 
+join top_wineriesNAEU t on m.continent = t.continent and m.winery = t.winery
+left join cte_t1 r on m.continent = r.continent and m.winery = r.winery
+group by m.continent, m.winery
+order by continent, high_rating_wines desc, avg_points desc, avg_price desc;
+
+
+
+*/ 
+# continuing from the previous query
+
+# computing the normalized scores & Prestige_index and ranking them. 
+
+with cte_t1 as (
+# Query CTE_T1 is used to find the count of wines with points above median (88 for both NA & EU)*/
+select continent, winery, count(variety) as high_rating_wines from (
+select continent, winery, variety,
+sum(case when points >=88 then 1 else 0 end) as high_rating_variety, 
+count(*) as total_reviews
+from wine_reviews 
+where continent in ( 'North America', 'Europe')
+group by continent, winery, variety
+having sum(case when points >=88 then 1 else 0 end)>0
+order by winery, high_rating_variety
+)t group by continent, winery
+order by winery, high_rating_wines desc
+)
+,
+cte_t2 as ( # wine_reviews tbl inner joins with top_wineriesNAEU tbl to find only the wineries that have >10 reviews & 
+#inner join with the above tbl to find no.of wines
+select m.continent, m.winery, round(avg(m.points),2) as avg_points, round(avg(m.prices),2) as avg_price, 
+round(avg(r.high_rating_wines),0) as High_rating_wines
+from wine_reviews m 
+join top_wineriesNAEU t on m.continent = t.continent and m.winery = t.winery
+left join cte_t1 r on m.continent = r.continent and m.winery = r.winery
+group by m.continent, m.winery
+order by continent, high_rating_wines desc, avg_points desc, avg_price desc
+)
+,
+
+cte_t3 as (
+select continent, winery, avg_points, avg_price, high_rating_wines,
+(avg_points - min(avg_points) over (partition by continent)) / (max(avg_points) over (partition by continent) - min(avg_points) over (partition by continent)) as norm_points,
+(avg_price - min(avg_price) over (partition by continent)) / (max(avg_price) over (partition by continent) - min(avg_price) over (partition by continent)) as norm_price,
+(high_rating_wines - min(high_rating_wines) over (partition by continent)) / (max(high_rating_wines) over (partition by continent) - min(high_rating_wines) over (partition by continent)) as norm_count
+from cte_t2
+)
+,
+cte_t4 as (
+select continent, winery, avg_points, avg_price, high_rating_wines, 
+	round((0.4*norm_points + 0.3*norm_price + 0.3*norm_count),2) as prestige_index
+from cte_t3
+order by continent, prestige_index desc
+)
+
+select continent, winery, avg_points, avg_price, high_rating_wines, prestige_index,
+rank() over (partition by continent order by prestige_index desc) as ranking
+from cte_t4
+;
+
+
+### Creating a permanent table for Prestige Index, so it can used for visualization
+
+create table winery_PrestigeIndex (
+	continent varchar(255),
+    winery varchar(255),
+    avg_points double,
+    avg_price double,
+    high_rating_wines int,
+    prestige_index double,
+    ranking int
+    );
+
+#drop table winery_PrestigeIndex
+
+insert into winery_PrestigeIndex()
+with cte_t1 as (
+# Query CTE_T1 is used to find the count of wines with points above median (88 for both NA & EU)*/
+select continent, winery, count(variety) as high_rating_wines from (
+select continent, winery, variety,
+sum(case when points >=88 then 1 else 0 end) as high_rating_variety, 
+count(*) as total_reviews
+from wine_reviews 
+where continent in ( 'North America', 'Europe')
+group by continent, winery, variety
+having sum(case when points >=88 then 1 else 0 end)>0
+order by winery, high_rating_variety
+)t group by continent, winery
+order by winery, high_rating_wines desc
+)
+,
+cte_t2 as ( # wine_reviews tbl inner joins with top_wineriesNAEU tbl to find only the wineries that have >10 reviews & 
+#inner join with the above tbl to find no.of wines
+select m.continent, m.winery, round(avg(m.points),2) as avg_points, round(avg(m.prices),2) as avg_price, 
+round(avg(r.high_rating_wines),0) as High_rating_wines
+from wine_reviews m 
+join top_wineriesNAEU t on m.continent = t.continent and m.winery = t.winery
+left join cte_t1 r on m.continent = r.continent and m.winery = r.winery
+group by m.continent, m.winery
+order by continent, high_rating_wines desc, avg_points desc, avg_price desc
+)
+,
+
+cte_t3 as (
+select continent, winery, avg_points, avg_price, high_rating_wines,
+(avg_points - min(avg_points) over (partition by continent)) / (max(avg_points) over (partition by continent) - min(avg_points) over (partition by continent)) as norm_points,
+(avg_price - min(avg_price) over (partition by continent)) / (max(avg_price) over (partition by continent) - min(avg_price) over (partition by continent)) as norm_price,
+(high_rating_wines - min(high_rating_wines) over (partition by continent)) / (max(high_rating_wines) over (partition by continent) - min(high_rating_wines) over (partition by continent)) as norm_count
+from cte_t2
+)
+,
+cte_t4 as (
+select continent, winery, avg_points, avg_price, high_rating_wines, 
+	round((0.4*norm_points + 0.3*norm_price + 0.3*norm_count),2) as prestige_index
+from cte_t3
+order by continent, prestige_index desc
+
+select continent, winery, avg_points, avg_price, high_rating_wines, prestige_index,
+rank() over (partition by continent order by prestige_index desc) as ranking
+from cte_t4
+;
+
+```
+
+```sql
+
+select * from winery_PrestigeIndex where avg_price <= 100 and ranking <=10
+order by continent, ranking
+
+```
+Output:
+![Q2Output]()
