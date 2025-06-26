@@ -347,6 +347,7 @@ order by continent, ranking
 
 ```
 Output:
+
 ![Q2Output](images/Q2output.png)
 
 ### Insights:
@@ -415,7 +416,8 @@ order by location
 Output:
 For Spain
 
-![Q3 Output]()
+
+![Q3 Output](images/Q3output.png)
 
 
 
